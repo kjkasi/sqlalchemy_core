@@ -74,18 +74,11 @@ class Response(BaseModel):
     count: int = 0
 
 
-@app.get("/organizations")
-async def get_test(session: AsyncSession = Depends(get_session)):
+@app.get("/organizations", response_model=Response)
+async def get_organizations(session: AsyncSession = Depends(get_session)):
+    query = select(organization, func.count().over().label("total"))
+    result = await session.execute(query)
 
-    query = select(organization, func.count(organization.c.OrganizationKey).over().label("total"))
-    result = (await session.execute(query)).all()
-
-    data: list[Any] = []
-    count: int = 0
-    if len(result) > 0:
-        for row in result:
-            data.append(Organisation(**row._mapping))
-            count = row[-1]
-            print(count)
-
+    data = [Organisation(**row._mapping) for row in result]
+    count = result.scalars().first() or 0
     return Response(data=data, count=count)
