@@ -79,10 +79,10 @@ async def get_organizations(session: AsyncSession = Depends(get_session)):
     query = select(organization, func.count().over().label("total"))
     result = await session.execute(query)
 
-    data = []
-    count = 0
+    data: list[Organisation] = []
+    count: int = 0
     for dict_row in result.mappings():
-        data.append(dict_row)
+        data.append(Organisation(**dict_row))
         count = int(dict_row.total)
 
     return Response(data=data, count=count)
