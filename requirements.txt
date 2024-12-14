@@ -1,0 +1,6 @@
+fastapi[standard]
+sqlalchemy[asyncio]
+pyodbc
+aioodbc
+pyyaml
+pydantic

@@ -1,0 +1,29 @@
+services:
+  app:
+    container_name: app
+    image: core/app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+      - 5678:5678
+    volumes:
+      - ./main.py:/app/main.py
+
+  sqldata:
+    container_name: sqldata
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    environment:
+      - SA_PASSWORD=Pass!word
+      - ACCEPT_EULA=Y
+      - MSSQL_COLLATION=Cyrillic_General_CI_AS
+    ports:
+      - 1433:1433
+    volumes:
+      - ./AdventureWorksDW2017.bak:/tmp/AdventureWorksDW2017.bak
+      - sqldata:/var/opt/mssql
+
+volumes:
+  sqldata:
+    external: false
