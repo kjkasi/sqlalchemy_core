@@ -1,4 +1,4 @@
-from typing import Any, Optional, cast
+from typing import Optional
 from fastapi import Depends, FastAPI
 from fastapi.responses import RedirectResponse
 from sqlalchemy import URL, Column, Integer, MetaData, String, Table, func, select
@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from pydantic import BaseModel, TypeAdapter
+from pydantic import BaseModel
 
 app = FastAPI(debug=True)
 
@@ -40,11 +40,11 @@ SessionLocal = async_sessionmaker(
 
 
 async def get_session():
-    async with SessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        await session.close()
 
 
 metadata_obj = MetaData()
@@ -79,6 +79,10 @@ async def get_organizations(session: AsyncSession = Depends(get_session)):
     query = select(organization, func.count().over().label("total"))
     result = await session.execute(query)
 
-    data = [Organisation(**row._mapping) for row in result]
-    count = result.scalars().first() or 0
+    data = []
+    count = 0
+    for dict_row in result.mappings():
+        data.append(dict_row)
+        count = int(dict_row.total)
+
     return Response(data=data, count=count)
